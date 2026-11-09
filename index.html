@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AI 起名 · 三个好名字</title>
+<style>
+  :root {
+    --paper: #f6f2ea;
+    --card: #fffdf8;
+    --ink: #1e1c19;
+    --ink-soft: #57534c;
+    --line: #e3dbcd;
+    --red: #a8342a;
+    --red-soft: #f3e3df;
+    --green: #2f6157;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background:
+      radial-gradient(1100px 500px at 12% -10%, #fffdf8 0%, rgba(255,253,248,0) 60%),
+      radial-gradient(900px 460px at 100% 0%, #f1ece1 0%, rgba(241,236,225,0) 55%),
+      var(--paper);
+    color: var(--ink);
+    font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+    padding: 40px 20px 80px;
+  }
+
+  .wrap { max-width: 860px; margin: 0 auto; }
+
+  /* ---------- 页头 ---------- */
+  .kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    letter-spacing: 0.16em;
+    color: var(--red);
+    background: var(--red-soft);
+    border: 1px solid #ebd3ce;
+    padding: 5px 12px;
+    border-radius: 999px;
+    margin-bottom: 18px;
+  }
+  .kicker .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--red); }
+
+  h1 {
+    margin: 0;
+    font-family: "Songti SC", "STSong", "Noto Serif SC", serif;
+    font-size: clamp(34px, 6vw, 52px);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    line-height: 1.2;
+  }
+  h1 em { font-style: normal; color: var(--red); }
+
+  .sub {
+    margin: 12px 0 34px;
+    color: var(--ink-soft);
+    font-size: 15px;
+    line-height: 1.8;
+    max-width: 620px;
+  }
+
+  /* ---------- 表单 ---------- */
+  .panel {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 26px;
+    box-shadow: 0 18px 40px -28px rgba(46, 38, 26, 0.4);
+  }
+
+  .field { margin-bottom: 18px; }
+  .label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    margin-bottom: 9px;
+    letter-spacing: 0.02em;
+  }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    border: 1px solid var(--line);
+    background: #fff;
+    color: var(--ink-soft);
+    padding: 8px 14px;
+    border-radius: 10px;
+    font-size: 13.5px;
+    cursor: pointer;
+    transition: all 0.16s ease;
+  }
+  .chip:hover { border-color: #cdc2ad; color: var(--ink); }
+  .chip.on {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: #fdfaf3;
+  }
+
+  textarea, input[type="text"] {
+    width: 100%;
+    border: 1px solid var(--line);
+    background: #fff;
+    border-radius: 12px;
+    padding: 13px 14px;
+    font-size: 14.5px;
+    color: var(--ink);
+    font-family: inherit;
+    line-height: 1.7;
+    outline: none;
+    transition: border-color 0.16s ease, box-shadow 0.16s ease;
+  }
+  textarea::placeholder, input::placeholder { color: #a89f8f; }
+  textarea:focus, input:focus {
+    border-color: var(--red);
+    box-shadow: 0 0 0 3px rgba(168, 52, 42, 0.09);
+  }
+  textarea { resize: vertical; min-height: 116px; }
+
+  /* ---------- 模型下拉 ---------- */
+  .model-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  select {
+    appearance: none;
+    -webkit-appearance: none;
+    min-width: 230px;
+    border: 1px solid var(--line);
+    background-color: #fff;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' fill='none' stroke='%2357534c' stroke-width='1.4'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    border-radius: 12px;
+    padding: 11px 36px 11px 14px;
+    font-size: 14.5px;
+    color: var(--ink);
+    font-family: inherit;
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.16s ease, box-shadow 0.16s ease;
+  }
+  select:focus { border-color: var(--red); box-shadow: 0 0 0 3px rgba(168, 52, 42, 0.09); }
+  select:disabled { color: #a89f8f; cursor: progress; }
+
+  .model-note { font-size: 12.5px; color: var(--ink-soft); line-height: 1.6; }
+  .model-note.warn { color: var(--red); }
+
+  .samples {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .sample {
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    background: #f7f2e8;
+    border: 1px dashed #ddd3c0;
+    border-radius: 8px;
+    padding: 6px 10px;
+    cursor: pointer;
+  }
+  .sample:hover { color: var(--red); border-color: #dcb9b1; }
+
+  .actions {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-top: 22px;
+    flex-wrap: wrap;
+  }
+
+  button.primary {
+    border: none;
+    background: var(--red);
+    color: #fffaf4;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    padding: 13px 30px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: transform 0.14s ease, box-shadow 0.14s ease, opacity 0.14s ease;
+    box-shadow: 0 12px 24px -14px rgba(168, 52, 42, 0.8);
+  }
+  button.primary:hover:not(:disabled) { transform: translateY(-1px); }
+  button.primary:disabled { opacity: 0.55; cursor: not-allowed; box-shadow: none; }
+
+  .hint { font-size: 12.5px; color: #968d7e; }
+
+  /* ---------- 输出区 ---------- */
+  .output { margin-top: 30px; }
+
+  .status {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 24px;
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin-bottom: 14px;
+  }
+  .pulse {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--red);
+    animation: pulse 1.2s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100% { opacity: 1; transform: scale(1);} 50% { opacity: 0.35; transform: scale(0.7);} }
+  .status .ok { color: var(--green); }
+  .status .warn { color: #977a3a; }
+  .status .bad { color: var(--red); }
+
+  .stream {
+    display: none;
+    background: #fbf8f1;
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--red);
+    border-radius: 12px;
+    padding: 20px 22px;
+    font-size: 14.5px;
+    line-height: 1.9;
+    color: #4a453d;
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-family: "Songti SC", "STSong", serif;
+  }
+  .stream.live::after {
+    content: "";
+    display: inline-block;
+    width: 7px; height: 15px;
+    margin-left: 2px;
+    background: var(--red);
+    vertical-align: -2px;
+    animation: blink 1s steps(2, start) infinite;
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+  }
+  @media (max-width: 780px) { .cards { grid-template-columns: 1fr; } }
+
+  .card {
+    position: relative;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 22px 20px 20px;
+    box-shadow: 0 16px 32px -30px rgba(46, 38, 26, 0.5);
+    animation: rise 0.4s ease both;
+  }
+  @keyframes rise { from { opacity: 0; transform: translateY(10px);} to { opacity: 1; transform: none; } }
+
+  .card .idx {
+    font-family: "Songti SC", serif;
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    color: #b3a894;
+    margin-bottom: 8px;
+  }
+  .card .name {
+    font-family: "Songti SC", "STSong", "Noto Serif SC", serif;
+    font-size: clamp(26px, 3.4vw, 34px);
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    line-height: 1.25;
+    margin: 0 0 12px;
+    color: var(--ink);
+  }
+  .card .name span { color: var(--red); }
+  .card .meaning {
+    font-size: 13.8px;
+    line-height: 1.85;
+    color: #4d4740;
+    margin: 0;
+    white-space: pre-wrap;
+  }
+  .card .source {
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px dashed #e7dfd1;
+    font-size: 12.5px;
+    color: #867c6b;
+    line-height: 1.7;
+  }
+  .card .copy {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    border: 1px solid var(--line);
+    background: #fff;
+    color: #9a9080;
+    font-size: 11.5px;
+    padding: 4px 9px;
+    border-radius: 7px;
+    cursor: pointer;
+    transition: all 0.16s ease;
+  }
+  .card .copy:hover { color: var(--red); border-color: #dcb9b1; }
+
+  .empty {
+    border: 1px dashed #ddd3c0;
+    border-radius: 14px;
+    padding: 34px 20px;
+    text-align: center;
+    color: #9d9383;
+    font-size: 13.5px;
+    line-height: 1.9;
+  }
+  .empty b { display: block; color: #7b7264; font-size: 15px; margin-bottom: 6px; letter-spacing: 0.08em; }
+
+  footer {
+    margin-top: 38px;
+    text-align: center;
+    font-size: 12px;
+    color: #a49a8a;
+    line-height: 1.9;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="kicker"><span class="dot"></span> AI 起名 · 火山方舟流式生成</div>
+  <h1>起个<em>好名字</em></h1>
+  <p class="sub">说说你要给谁起名、想要什么气质，AI 会给出 3 组候选方案，逐字流式呈现，并附上字义与出处解析。</p>
+
+  <form class="panel" id="form">
+    <div class="field">
+      <label class="label">起名类型</label>
+      <div class="chips" id="typeChips">
+        <button type="button" class="chip on" data-value="人名">人名</button>
+        <button type="button" class="chip" data-value="宠物名">宠物名</button>
+        <button type="button" class="chip" data-value="品牌名">品牌 / 产品名</button>
+        <button type="button" class="chip" data-value="公司名">公司名</button>
+        <button type="button" class="chip" data-value="小说角色名">小说角色名</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="label" for="modelSelect">生成模型</label>
+      <div class="model-row">
+        <select id="modelSelect" disabled>
+          <option>加载模型列表…</option>
+        </select>
+        <span class="model-note" id="modelNote"></span>
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="label">偏好风格</label>
+      <div class="chips" id="styleChips">
+        <button type="button" class="chip on" data-value="温润雅致">温润雅致</button>
+        <button type="button" class="chip" data-value="古典诗词">古典诗词</button>
+        <button type="button" class="chip" data-value="大气磅礴">大气磅礴</button>
+        <button type="button" class="chip" data-value="现代简约">现代简约</button>
+        <button type="button" class="chip" data-value="中性高级">中性高级</button>
+        <button type="button" class="chip" data-value="俏皮可爱">俏皮可爱</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="label" for="extra">补充要求（选填）</label>
+      <input type="text" id="extra" placeholder="例如：姓李、双字名、希望带水或木字旁、避开生僻字……" maxlength="120" />
+    </div>
+
+    <div class="field">
+      <label class="label" for="requirement">起名需求</label>
+      <textarea id="requirement" maxlength="800" placeholder="例如：给一个男生起名，2024 年出生，姓陈，希望名字有书卷气、寓意沉稳有定力，不要太常见。"></textarea>
+      <div class="samples" id="samples">
+        <span class="sample">姓林，给出生女孩起名，温婉清雅</span>
+        <span class="sample">给一只橘猫起名，活泼好记</span>
+        <span class="sample">做一个茶饮品牌名，东方感、易传播</span>
+        <span class="sample">科幻小说男主，冷峻、带未来感</span>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button type="submit" class="primary" id="submitBtn">生成 3 组名字</button>
+      <span class="hint">Ctrl / ⌘ + Enter 快速提交</span>
+    </div>
+  </form>
+
+  <div class="output">
+    <div class="status" id="status"></div>
+    <div class="stream" id="stream"></div>
+    <div class="cards" id="cards"></div>
+    <div class="empty" id="empty">
+      <b>还没起名</b>
+      填好需求后点击「生成 3 组名字」，结果会实时逐字出现。
+    </div>
+  </div>
+
+  <footer id="footer">由所选模型流式生成 · 起名前建议再核对一遍读音与谐音</footer>
+</div>
+
+<script>
+(function () {
+  const form = document.getElementById('form');
+  const requirementEl = document.getElementById('requirement');
+  const extraEl = document.getElementById('extra');
+  const submitBtn = document.getElementById('submitBtn');
+  const statusEl = document.getElementById('status');
+  const streamEl = document.getElementById('stream');
+  const cardsEl = document.getElementById('cards');
+  const emptyEl = document.getElementById('empty');
+  const modelSelect = document.getElementById('modelSelect');
+  const modelNote = document.getElementById('modelNote');
+  const footerEl = document.getElementById('footer');
+
+  const state = { nameType: '人名', style: '温润雅致', model: '' };
+  let modelList = [];
+
+  /* ---------- 模型下拉：从 /api/models 读取 modelConfigMap ---------- */
+  function renderModelNote() {
+    const item = modelList.find((m) => m.id === state.model);
+    if (!item) {
+      modelNote.textContent = '';
+      return;
+    }
+    if (item.configured) {
+      modelNote.className = 'model-note';
+      modelNote.textContent = item.vendor + ' · ' + item.model;
+    } else {
+      modelNote.className = 'model-note warn';
+      modelNote.textContent = '未配置 ' + item.keyEnv + '，选它会提示缺少密钥';
+    }
+  }
+
+  async function loadModels() {
+    try {
+      const res = await fetch('/api/models');
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      modelList = Array.isArray(data.models) ? data.models : [];
+      if (!modelList.length) throw new Error('模型列表为空');
+
+      modelSelect.innerHTML = '';
+      modelList.forEach((m) => {
+        const opt = document.createElement('option');
+        opt.value = m.id;
+        opt.textContent = m.label + (m.configured ? '' : '（未配置密钥）');
+        modelSelect.appendChild(opt);
+      });
+
+      const preferred = modelList.find((m) => m.id === data.defaultModel) || modelList[0];
+      state.model = preferred.id;
+      modelSelect.value = preferred.id;
+      modelSelect.disabled = false;
+      renderModelNote();
+    } catch (err) {
+      modelSelect.innerHTML = '<option>模型列表加载失败</option>';
+      modelNote.className = 'model-note warn';
+      modelNote.textContent = '无法读取 /api/models：' + (err && err.message ? err.message : '未知错误');
+    }
+  }
+
+  modelSelect.addEventListener('change', () => {
+    state.model = modelSelect.value;
+    renderModelNote();
+  });
+
+  loadModels();
+
+  function bindChips(containerId, key) {
+    const box = document.getElementById(containerId);
+    box.addEventListener('click', (e) => {
+      const chip = e.target.closest('.chip');
+      if (!chip) return;
+      box.querySelectorAll('.chip').forEach((c) => c.classList.remove('on'));
+      chip.classList.add('on');
+      state[key] = chip.dataset.value;
+    });
+  }
+  bindChips('typeChips', 'nameType');
+  bindChips('styleChips', 'style');
+
+  document.getElementById('samples').addEventListener('click', (e) => {
+    const s = e.target.closest('.sample');
+    if (!s) return;
+    requirementEl.value = s.textContent.trim();
+    requirementEl.focus();
+  });
+
+  function setStatus(text, kind) {
+    statusEl.innerHTML = '';
+    if (!text) return;
+    if (kind === 'busy') {
+      const dot = document.createElement('span');
+      dot.className = 'pulse';
+      statusEl.appendChild(dot);
+    }
+    const span = document.createElement('span');
+    if (kind) span.className = kind;
+    span.textContent = text;
+    statusEl.appendChild(span);
+  }
+
+  function renderStream(text) {
+    streamEl.style.display = 'block';
+    streamEl.textContent = text;
+  }
+
+  function escapeHtml(s) {
+    return s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+
+  function renderCards(names) {
+    cardsEl.innerHTML = '';
+    emptyEl.style.display = names.length ? 'none' : 'block';
+
+    names.forEach((item, i) => {
+      const card = document.createElement('article');
+      card.className = 'card';
+      card.style.animationDelay = (i * 0.07) + 's';
+
+      const idx = document.createElement('div');
+      idx.className = 'idx';
+      idx.textContent = 'No.0' + (i + 1);
+
+      const copy = document.createElement('button');
+      copy.className = 'copy';
+      copy.type = 'button';
+      copy.textContent = '复制';
+      copy.addEventListener('click', async () => {
+        const text = item.name + '\n' + (item.meaning || '') + (item.source ? '\n来源：' + item.source : '');
+        try {
+          await navigator.clipboard.writeText(text);
+          copy.textContent = '已复制';
+        } catch {
+          copy.textContent = '复制失败';
+        }
+        setTimeout(() => { copy.textContent = '复制'; }, 1500);
+      });
+      card.appendChild(copy);
+
+      const nameEl = document.createElement('h2');
+      nameEl.className = 'name';
+      nameEl.textContent = item.name;
+
+      const meaningEl = document.createElement('p');
+      meaningEl.className = 'meaning';
+      meaningEl.textContent = item.meaning || '（模型未返回寓意）';
+
+      card.appendChild(idx);
+      card.appendChild(nameEl);
+      card.appendChild(meaningEl);
+
+      if (item.source) {
+        const sourceEl = document.createElement('div');
+        sourceEl.className = 'source';
+        sourceEl.textContent = '来源：' + item.source;
+        card.appendChild(sourceEl);
+      }
+
+      cardsEl.appendChild(card);
+    });
+  }
+
+  function resetOutput() {
+    cardsEl.innerHTML = '';
+    streamEl.textContent = '';
+    streamEl.style.display = 'none';
+    streamEl.classList.remove('live');
+    emptyEl.style.display = 'none';
+  }
+
+  async function generate() {
+    const requirement = requirementEl.value.trim();
+    if (requirement.length < 2) {
+      setStatus('请先填写起名需求（至少 2 个字）', 'bad');
+      requirementEl.focus();
+      return;
+    }
+
+    const payload = {
+      requirement: requirement,
+      nameType: state.nameType,
+      style: state.style,
+      extra: extraEl.value.trim(),
+      model: state.model,
+    };
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = '生成中…';
+    resetOutput();
+    streamEl.style.display = 'block';
+    streamEl.classList.add('live');
+    setStatus('正在连接模型…', 'busy');
+
+    let full = '';
+    let activeModel = '';
+
+    try {
+      const res = await fetch('/api/name', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        let msg = '请求失败（' + res.status + '）';
+        try {
+          const j = await res.json();
+          if (j && j.error) msg = j.error;
+        } catch (_) {}
+        throw new Error(msg);
+      }
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder('utf-8');
+      let buffer = '';
+      let finished = false;
+      let gotDelta = false;
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const events = buffer.split('\n\n');
+        buffer = events.pop() || '';
+
+        for (const block of events) {
+          for (const line of block.split('\n')) {
+            const trimmed = line.trim();
+            if (!trimmed.startsWith('data:')) continue;
+
+            let data;
+            try {
+              data = JSON.parse(trimmed.slice(5).trim());
+            } catch (_) {
+              continue;
+            }
+
+            if (data.type === 'meta') {
+              activeModel = data.modelLabel || data.modelId || '';
+              setStatus('正在用 ' + activeModel + ' 生成…', 'busy');
+            } else if (data.type === 'delta') {
+              full += data.text || '';
+              renderStream(full.replace(/^###\s*/gm, '').replace(/^#{1,4}\s*/gm, ''));
+              if (!gotDelta) {
+                gotDelta = true;
+                setStatus('正在用 ' + (activeModel || '模型') + ' 生成…', 'busy');
+              }
+            } else if (data.type === 'done') {
+              finished = true;
+              streamEl.classList.remove('live');
+              const names = data.names || [];
+              const who = data.modelLabel || data.modelId || activeModel || '';
+              if (names.length) {
+                streamEl.style.display = 'none';
+                renderCards(names);
+                setStatus(
+                  data.saved
+                    ? '已完成 · ' + who + ' 生成 · 结果已保存到 Supabase' +
+                      (data.recordId ? '（记录 #' + data.recordId + '）' : '')
+                    : '已完成 · ' + who + ' 生成 · 未写入 Supabase：' + (data.reason || '存储未配置'),
+                  data.saved ? 'ok' : 'warn'
+                );
+                if (who) footerEl.textContent = '本次由 ' + who + '（' + (data.model || '') + '）流式生成 · 起名前建议再核对一遍读音与谐音';
+              } else {
+                setStatus('模型返回格式异常，已展示原文', 'warn');
+              }
+            } else if (data.type === 'error') {
+              finished = true;
+              setStatus(data.message || '生成失败', 'bad');
+            }
+          }
+        }
+      }
+
+      if (!finished) {
+        streamEl.classList.remove('live');
+        setStatus('连接中断，请重试', 'bad');
+      }
+    } catch (err) {
+      streamEl.classList.remove('live');
+      setStatus(err && err.message ? err.message : '请求失败，请稍后重试', 'bad');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = '生成 3 组名字';
+    }
+  }
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    if (!submitBtn.disabled) generate();
+  });
+
+  requirementEl.addEventListener('keydown', (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key === 'Enter' && !submitBtn.disabled) {
+      e.preventDefault();
+      generate();
+    }
+  });
+})();
+</script>
+</body>
+</html>
